@@ -200,10 +200,6 @@ class Hurdat2:
         
         return pd.concat(all_data, ignore_index=True)
 
-    def help(self):
-        """Prints help message."""
-        print("See documentation or use help() on specific objects.")
-
     def __iter__(self):
         return iter(self._storms.values())
 

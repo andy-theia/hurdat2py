@@ -34,7 +34,7 @@ import hurdat2py
 
 hd2 = hurdat2py.Hurdat2("path_to_file.txt")
 ```
-* Or if no path is specified, it will automatically download the latest data from [https://www.nhc.noaa.gov/data/hurdat/](https://www.nhc.noaa.gov/data/hurdat/) (~7MB) and save it locally.
+* If no path is specified, it will automatically download the latest data from [https://www.nhc.noaa.gov/data/hurdat/](https://www.nhc.noaa.gov/data/hurdat/) (~7MB) and save it locally.
     * Note: The cached file will be overwritten after 30 days to ensure the latest file is available.
 
 ```python
@@ -125,10 +125,10 @@ Method/Attribute | Description | Example
 ### v0.3.3 (2026-01-15)
 * Documentation: Major overhaul of README to include API reference tables and additional information.
 
-### v0.3.2 (2026-01-13)
+### v0.3.2 (2026-01-12)
 * Documentation: Updates to README.
 
-### v0.3.1 (2026-01-13)
+### v0.3.1 (2026-01-12)
 * Launch: Initial release on [PyPI](https://pypi.org/project/hurdat2py/).
 * Structure: Package structure overhaul for organization.
 
@@ -146,7 +146,9 @@ Method/Attribute | Description | Example
 MIT License. See LICENSE file for details.
 
 ## Disclaimer
-This package is maintained for personal research and is not an official NOAA product. 
+`hurdat2py` is maintained for personal research and is not an official NOAA product. 
+
+Python® and the Python logo are registered trademarks of the Python Software Foundation. `hurdat2py` is an independent open-source project and is not affiliated with or endorsed by the Python Software Foundation.
 
 ## Copyright
 **hurdat2py** <br>

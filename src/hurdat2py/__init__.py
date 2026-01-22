@@ -22,4 +22,4 @@ except PackageNotFoundError:
     # If the package is not installed (e.g. just running local script), avoid crashing
     __version__ = "unknown"
 
-__author__ = "Theia"
+__author__ = "Andy McKeen"
