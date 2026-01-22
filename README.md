@@ -1,4 +1,6 @@
-# hurdat2py
+<div align="center">
+  <img src="https://github.com/andy-theia/hurdat2py/blob/main/hurdat2py_logo_v1.png?raw=true" width="600" alt="hurdat2py logo">
+</div>
 
 [![PyPI version](https://img.shields.io/pypi/v/hurdat2py.svg)](https://pypi.org/project/hurdat2py/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -115,9 +117,12 @@ Method/Attribute | Description | Example
 * **Improved Plotting Functionality**: Add/improve plotting functions.
     * Expected: Summer 2026
 * **Wind Radius Implementation**: Add support for and methods utilizing wind radius data included with modern records in the Hurdat2 dataset.
-    * Expected: 2027
+    * Expected: Summer 2027
 
 ## Changelog
+### v0.3.5 (2026-01-22)
+* Documentation: Add logo to README.
+
 ### v0.3.4 (2026-01-15)
 * Documentation: Minor updates to README.
 * Launch: Initial release on [GitHub](https://github.com/andy-theia/hurdat2py).
