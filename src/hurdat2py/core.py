@@ -13,10 +13,14 @@ class Hurdat2:
     Access storms by ATCFID (e.g., hurdat_data.al031991) or seasons by year
     (e.g., hurdat_data[1991]).
     """
-    def __init__(self, file_path=None):
+    def __init__(self, file_path=None, basin='atl'):
         self._storms = {}
+        self.basin = basin.lower()
         data_content = False
-
+        
+        if self.basin not in ['atl', 'nepac']:
+            raise ValueError("Invalid basin. Please specify 'atl' for Atlantic or 'nepac' for Northeast/Central Pacific.")
+            
         if file_path:
             if os.path.exists(file_path):
                 print(f"Read data from local file: {file_path}")
@@ -74,7 +78,7 @@ class Hurdat2:
     def _get_data_from_url(self):
         """Finds and downloads the latest HURDAT2 file from the NHC website with caching."""
         cache_dir = os.path.join(os.path.expanduser('~'), '.hurdat2py_cache')
-        cache_path = os.path.join(cache_dir, 'hurdat2_latest.txt')
+        cache_path = os.path.join(cache_dir, f'hurdat2_{self.basin}_latest.txt')
 
         if os.path.exists(cache_path) and (datetime.datetime.now() - datetime.datetime.fromtimestamp(os.path.getmtime(cache_path))).days < 30:
             print("Using cached data from local file.")
@@ -95,41 +99,40 @@ class Hurdat2:
             for filename in all_hurdat_urls:
                 if "format" in filename or "readme" in filename:
                     continue
-
-                timestr = None
-                parsed_date = None
-                match = re.search(r"(\d{4}-\d{2}-\d{2})\.txt", filename)
-                if match:
-                    timestr = match.group(1)
-                    parsed_date = datetime.datetime.strptime(timestr, '%Y-%m-%d').date()
-                else:
-                    match = re.search(r"(\d{6})\.txt", filename)
-                    if match:
-                        timestr = match.group(1)
-                        year = int(timestr[-2:])
-                        if year > 50:
-                            parsed_date = datetime.date(1900 + year, int(timestr[:2]), int(timestr[2:4]))
-                        else:
-                            parsed_date = datetime.date(2000 + year, int(timestr[:2]), int(timestr[2:4]))
-                    else:
-                        match = re.search(r"(\d{4}-\d{2})\.txt", filename)
-                        if match:
-                            timestr = match.group(1)
-                            parsed_date = datetime.datetime.strptime(timestr, '%Y-%m').date()
-                        else:
-                            continue
                 
-                hurdat_urls_with_dates.append(URLTime(filename, parsed_date))
+                is_nepac = "nepac" in filename.lower()
+                if self.basin == 'atl' and is_nepac:
+                    continue
+                if self.basin == 'nepac' and not is_nepac:
+                    continue
+                    
+                parsed_date = None
+                match_iso = re.search(r"(\d{4}-\d{2}-\d{2})\.txt", filename)
+                if match_iso:
+                    parsed_date = datetime.datetime.strptime(match_iso.group(1), '%Y-%m-%d').date()
+                else:
+                    # 2. Capture ALL digits after the last hyphen (prevents partial matches)
+                    match_digits = re.search(r"-(\d+)\.txt", filename)
+                    if match_digits:
+                        d_str = match_digits.group(1)
+                        if len(d_str) == 8: # MMDDYYYY (e.g. 02272026)
+                            parsed_date = datetime.date(int(d_str[4:]), int(d_str[:2]), int(d_str[2:4]))
+                        elif len(d_str) == 6: # MMDDYY (e.g. 040425)
+                            year = int(d_str[-2:])
+                            full_year = 2000 + year if year < 50 else 1900 + year
+                            parsed_date = datetime.date(full_year, int(d_str[:2]), int(d_str[2:4]))
+                
+                if parsed_date:
+                    hurdat_urls_with_dates.append(URLTime(filename, parsed_date))
                 
             if not hurdat_urls_with_dates:
-                raise DataParseError("No HURDAT2 URLs found with a parseable date.")
+                raise DataParseError(f"No HURDAT2 files found for the '{self.basin}' basin.")
 
             hurdat_urls_with_dates.sort(key=lambda u: u.date, reverse=True)
 
             latest_url = hurdat_urls_with_dates[0].url
-            full_url = url + latest_url
             
-            with urllib.request.urlopen(full_url, timeout=10) as u:
+            with urllib.request.urlopen(url + latest_url, timeout=10) as u:
                 file_content = u.read().decode()
                 
                 os.makedirs(cache_dir, exist_ok=True)
@@ -142,7 +145,7 @@ class Hurdat2:
                 
         except Exception as e:
             print(f"Error downloading HURDAT2 data from URL: {e}")
-            raise DataDownloadError(f"Failed to download data: {e}") from e
+            raise DataDownloadError(f"Failed to (2) download data: {e}") from e
 
     def _read_data(self, file_content):
         """Parses HURDAT2 data from a string."""
@@ -150,7 +153,7 @@ class Hurdat2:
         
         current_storm = None
         for line in lines:
-            if line.startswith('AL'):
+            if line.startswith(('AL', 'EP', 'CP')):
                 parts = line.split(',')
                 storm_atcfid = parts[0].strip().lower()
                 storm_name = parts[1].strip()

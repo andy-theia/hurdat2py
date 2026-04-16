@@ -7,7 +7,6 @@
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 
 **hurdat2py** is a research-focused Python interface for the NOAA HURDAT2 Dataset. It automates data retrieval and parsing, giving you immediate access to clean, analysis-ready data.
-* Note: Currently only the North Atlantic Basin is supported. See [Roadmap](#roadmap) for more info.
 
 ## Table of Contents
 1. [Installation](#installation)
@@ -42,7 +41,11 @@ hd2 = hurdat2py.Hurdat2("path_to_file.txt")
 ```python
 import hurdat2py
 
-hd2 = hurdat2py.Hurdat2()
+# Initialize for Atlantic (default)
+hd2_atl = hurdat2py.Hurdat2()
+
+# Initialize for Northeast/Central Pacific
+hd2_pac = hurdat2py.Hurdat2(basin='nepac')
 ```
 
 ### 2. Create `Storm` or `Season` objects
@@ -64,8 +67,8 @@ The main entry point. Handles downloading, caching, and parsing the raw text dat
 
 Method | Description | Example
 :--- | :--- | :---
-`hurdat2py.Hurdat2()` | Initializes the database. Downloads latest data if local cache is missing/expired. | `hd2 = hurdat2py.Hurdat2()`
-`db['name', year]`| **Get Storm (by Name)***. Returns a `Storm` object. Case-insensitive. <br> <br> *This method will not work for storms named UNNAMED, especially before 1950. | `storm = hd2['bob', 1991]`
+`hurdat2py.Hurdat2()` | Initializes the database. Downloads latest available data if local cache is missing/expired. <br> <br> Kwargs: <br> basin (`'atl'` or `'nepac'`) Specifies which HURDAT2 database to load. Default is `'atl'`. | `hd2 = hurdat2py.Hurdat2(basin='nepac')`
+`db['name', year]`| **Get Storm (by Name)***. Returns a `Storm` object. Case-insensitive. <br> <br> *This method will not work for storms named UNNAMED. | `storm = hd2['bob', 1991]`
 `db[atcfid]` | **Get Storm (by ID)**. Returns a `Storm` object using ATCFID. | `storm = hd2['al031991']`
 `db[year]` | **Get Season**. Returns a `Season` object for the specified year. | `season = hd2[1991]`
 `rank_seasons_by_ace()` | Returns a sorted list of seasons by Accumulated Cyclone Energy (`float`). | `top5 = hd2.rank_seasons_by_ace()[:5]` 
@@ -110,8 +113,7 @@ Method/Attribute | Description | Example
 
 ## Roadmap
 ### Future planned updates:
-* **Northeast Pacific Support**: Add support for the NEPAC Hurdat2 dataset.
-    * Expected: Spring 2026
+
 * **Statistics Improvements**: Implement new statistics functionality for `Storm` and `Season` objects.
     * Expected: Summer 2026
 * **Improved Plotting Functionality**: Add/improve plotting functions.
@@ -120,22 +122,8 @@ Method/Attribute | Description | Example
     * Expected: Summer 2027
 
 ## Changelog
-### v0.3.5 (2026-01-22)
-* Documentation: Add logo to README.
+See [CHANGELOG.md](CHANGELOG.md) file for the full version history.
 
-### v0.3.4 (2026-01-15)
-* Documentation: Minor updates to README.
-* Launch: Initial release on [GitHub](https://github.com/andy-theia/hurdat2py).
-
-### v0.3.3 (2026-01-15)
-* Documentation: Major overhaul of README to include API reference tables and additional information.
-
-### v0.3.2 (2026-01-12)
-* Documentation: Updates to README.
-
-### v0.3.1 (2026-01-12)
-* Launch: Initial release on [PyPI](https://pypi.org/project/hurdat2py/).
-* Structure: Package structure overhaul for organization.
 
 ## Attribution & Data Sources
 ### **Data**
