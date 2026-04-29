@@ -48,7 +48,7 @@ DEFAULT_ATLANTIC_EXTENT = [-105, -5, 0, 65]
 def plot_storm_tracks(storm_or_storms, title_info=None, labels=False):
     """
     Plots a map of the storm track(s).
-    Accepts a single object (TropicalCyclone) or a list of objects (Season).
+    Accepts a single object (Storm) or a list of objects (Season).
     """
     is_single_storm = not isinstance(storm_or_storms, list)
     storms_to_plot = [storm_or_storms] if is_single_storm else storm_or_storms
@@ -120,7 +120,7 @@ def plot_intensity_chart(storm, zoom=False, landfalls=False):
     ax.plot(t, w, color='black', linewidth=3)
     
     if landfalls:
-        landfall_df = df[df['landfall'] == True]
+        landfall_df = df[df['landfall'] == 'L']
         if not landfall_df.empty:
             landfall_t = landfall_df['time']
             landfall_w = landfall_df['wind']
@@ -310,6 +310,10 @@ def _add_default_titles(ax, storms_to_plot, is_single_storm, title_info=None):
             ax.set_title(f"{title_info['year']} Atlantic Hurricane Season", fontsize=15, fontweight="bold", loc="left")
             subtitle = f"{title_info['ts_count']} named {chr(183)} {title_info['hu_count']} hurricanes {chr(183)} {title_info['mh_count']} major"
             ax.set_title(subtitle, fontsize=10, loc="right", fontweight="normal")
+            
+        elif title_info and 'custom_title' in title_info:
+            ax.set_title(title_info['custom_title'], fontsize=15, fontweight="bold", loc="left")
+        
         else:
             ax.set_title(f"{len(storms_to_plot)} Filtered Storms", fontsize=11, fontweight="bold", loc="left")
     
@@ -368,3 +372,24 @@ def _set_intensity_title(ax, storm, w, categories):
         if max_w >= w_min:
             cat_label = title_label
     ax.set_title(f'{cat_label} {storm.name} ({storm.year})', fontsize=20, fontweight="medium")
+    
+def plot_storms(storms, labels=True, title=None):
+    """
+    Plots a custom list of Storm objects with the built-in professional aesthetic.
+    
+    Args:
+        storms (list): A list of Storm objects.
+        labels (bool): Whether to include storm name labels on the map.
+        title (str, optional): Custom title for the plot.
+    """
+    if not storms:
+        print("No storms provided to plot.")
+        return
+
+    # Prepare title_info dict for the internal engine
+    title_info = {'type': 'custom'}
+    if title:
+        title_info['custom_title'] = title
+    
+    # Call the internal engine (already in this file)
+    plot_storm_tracks(storms, title_info=title_info, labels=labels)

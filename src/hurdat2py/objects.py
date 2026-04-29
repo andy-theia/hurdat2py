@@ -43,10 +43,10 @@ class Hurdat2Entry:
 
 
 # -----------------------------------------------------------------------------
-# 2. The Individual Storm: TropicalCyclone
+# 2. The Individual Storm: Storm
 # -----------------------------------------------------------------------------
 
-class TropicalCyclone:
+class Storm:
     """
     Represents a single tropical cyclone with its data and analysis methods.
     """
@@ -236,15 +236,26 @@ class TropicalCyclone:
             data_list.append({
                 'atcfid': self.atcfid,
                 'name': self.name,
+                'year': self.year,
                 'time': entry.entrytime,
                 'status': entry.status,
                 'lat': entry.latitude,
                 'lon': entry.longitude,
                 'wind': entry.wind,
                 'pressure': entry.pressure,
-                'landfall': entry.landfall == 'L'
+                'landfall': 'L' if entry.landfall == 'L' else '',
+                'ace': (entry.wind**2 / 10000) if entry.entrytime.hour in [0, 6, 12, 18] and entry.status in ['SS', 'TS', 'HU', 'SD'] and entry.wind >= 34 else 0
             })
-        return pd.DataFrame(data_list)
+        df = pd.DataFrame(data_list)
+        return df.astype({
+            'atcfid': 'string',
+            'name': 'string',
+            'status': 'string',
+            'landfall': 'string',
+            'wind': 'float64',
+            'pressure': 'float64',
+            'ace': 'float64'
+        })
 
     def plot(self):
         """Plots the track of this storm."""
@@ -255,8 +266,10 @@ class TropicalCyclone:
         plot_intensity_chart(self, zoom=zoom, landfalls=landfalls)
 
     def __repr__(self):
-        return f"<TropicalCyclone: {self.name} ({self.year})>"
+        return f"<Storm: {self.name} ({self.year})>"
 
+# Alias for backward compatibility
+TropicalCyclone = Storm
 
 # -----------------------------------------------------------------------------
 # 3. The Collection: Season
@@ -264,7 +277,7 @@ class TropicalCyclone:
 
 class Season:
     """
-    Represents a single hurricane season (a collection of TropicalCyclones).
+    Represents a single hurricane season (a collection of Storms).
     """
     def __init__(self, storms):
         if not storms:
@@ -312,7 +325,11 @@ class Season:
         """Returns a single DataFrame containing data for ALL storms in the season."""
         if not self.storms:
             return pd.DataFrame()
-        return pd.concat([storm.to_dataframe() for storm in self.storms], ignore_index=True)
+        all_data = [storm.to_dataframe() for storm in self.storms]
+        valid_data = [df for df in all_data if not df.empty and df.notna().any().any()]
+        if not valid_data:
+            return pd.DataFrame()
+        return pd.concat(valid_data, ignore_index=True)
 
     def plot(self, labels=True):
         """Plots tracks for the entire season."""

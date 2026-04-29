@@ -5,7 +5,7 @@ from importlib.metadata import version, PackageNotFoundError
 from .core import Hurdat2
 
 # Expose the data objects
-from .objects import TropicalCyclone, Season, Hurdat2Entry
+from .objects import Storm, Season, Hurdat2Entry
 
 # Expose errors
 from .errors import (
@@ -14,6 +14,9 @@ from .errors import (
     DataDownloadError, 
     DataParseError
 )
+
+# Expose plot_storms function
+from .plot import plot_storms
 
 # Fetch version dynamically from pyproject.toml metadata
 try:

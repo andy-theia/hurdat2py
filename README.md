@@ -4,7 +4,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/hurdat2py.svg)](https://pypi.org/project/hurdat2py/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
 **hurdat2py** is a research-focused Python interface for the NOAA HURDAT2 Dataset. It automates data retrieval and parsing, giving you immediate access to clean, analysis-ready data.
 
@@ -15,9 +15,8 @@
     - [The Database (Hurdat2)](#1-the-database-hurdat2)
     - [The Storm Object](#2-the-storm-object)
     - [The Season Object](#3-the-season-object)
-4. [Roadmap](#roadmap)
-5. [Changelog](#changelog)
-6. [Attribution](#attribution--data-sources)
+4. [Changelog & Roadmap](#changelog--roadmap)
+5. [Attribution](#attribution--data-sources)
 
 ---
 
@@ -26,6 +25,9 @@
 ```bash
 pip install hurdat2py
 ```
+
+---
+
 ## Quick Start
 
 ### 1. Initialize the Database
@@ -42,7 +44,7 @@ hd2 = hurdat2py.Hurdat2("path_to_file.txt")
 import hurdat2py
 
 # Initialize for Atlantic (default)
-hd2_atl = hurdat2py.Hurdat2()
+hd2_atl = hurdat2py.Hurdat2(basin='atl')
 
 # Initialize for Northeast/Central Pacific
 hd2_pac = hurdat2py.Hurdat2(basin='nepac')
@@ -51,15 +53,17 @@ hd2_pac = hurdat2py.Hurdat2(basin='nepac')
 ### 2. Create `Storm` or `Season` objects
 * Allows for easy access to storm or season data.
 ```python
-# Storm obect:
-storm = hd2['bob', 1991]
+# Storm object:
+storm = hd2_atl['bob', 1991]
 # or
-storm = hd2['al031991']
+storm = hd2_atl['al031991']
 
 # Season object:
-season = hd2[1991]
+season = hd2_atl[1991]
 ```
 * See [The Storm Object](#2-the-storm-object) or [The Season Object](#3-the-season-object) for more info.
+
+---
 
 ## API Reference
 ### 1. The Database (Hurdat2)
@@ -67,11 +71,12 @@ The main entry point. Handles downloading, caching, and parsing the raw text dat
 
 Method | Description | Example
 :--- | :--- | :---
-`hurdat2py.Hurdat2()` | Initializes the database. Downloads latest available data if local cache is missing/expired. <br> <br> Kwargs: <br> basin (`'atl'` or `'nepac'`) Specifies which HURDAT2 database to load. Default is `'atl'`. | `hd2 = hurdat2py.Hurdat2(basin='nepac')`
+`hurdat2py.Hurdat2()` | Initializes the database. Downloads latest available data if local cache is missing/expired. <br> <br> Kwargs: <br> basin (`'atl'` or `'nepac'`) Specifies which HURDAT2 database to load. Default is `'atl'`. | `hd2 = hurdat2py.Hurdat2(basin='atl')`
 `db['name', year]`| **Get Storm (by Name)***. Returns a `Storm` object. Case-insensitive. <br> <br> *This method will not work for storms named UNNAMED. | `storm = hd2['bob', 1991]`
 `db[atcfid]` | **Get Storm (by ID)**. Returns a `Storm` object using ATCFID. | `storm = hd2['al031991']`
 `db[year]` | **Get Season**. Returns a `Season` object for the specified year. | `season = hd2[1991]`
-`rank_seasons_by_ace()` | Returns a sorted list of seasons by Accumulated Cyclone Energy (`float`). | `top5 = hd2.rank_seasons_by_ace()[:5]` 
+
+---
 
 ### 2. The `Storm` Object
 Represents a single tropical cyclone.
@@ -93,7 +98,9 @@ Method/Attribute | Description | Example
 `stats()` | Prints statistics and detailed information about the storm. | `storm.stats()`
 `plot()` | Plots storm track, colored by Saffir-Simpson intensity. Plot aesthetic is inspired by the tropycal package. | `storm.plot()`
 `plot_intensity()` | Plots the storm's windspeed over time, colored by Saffir-Simpson intensity. <br> Kwargs: <br> zoom (`bool`) Crops into the intensity curve. <br> landfalls (`bool`) Plots landfall times on intensity curve. | storm.plot_intensity(zoom=True, landfalls=False)
-`to_dataframe()` | Exports track data (date, time, lat, lon, wind, pressure) to a Pandas DataFrame. | `df = storm.to_dataframe()`
+`to_dataframe()` | Exports track data (atcfid, name, year, time, status, lat, lon, wind, pressure, landfall, ace) to a Pandas DataFrame. | `df = storm.to_dataframe()`
+
+---
 
 ### 3. The `Season` Object
 Represents a full year of activity.
@@ -102,28 +109,21 @@ Method/Attribute | Description | Example
  :--- | :--- | :--- 
 `year` | Returns the year of the season (`int`) | `print(season.year)`
 `storms` | List of `Storm` objects within the season. | `print(season.storms)`
-`total_storms` | Number of storms in the season (`int`). Effectively `len(season.storms)` | `print(season_total_storms)`
+`total_storms` | Number of storms in the season (`int`). Effectively `len(season.storms)` | `print(season.total_storms)`
 `tropical_storms` | Number of tropical storms in the season (`int`). | `print(season.tropical_storms)`
 `hurricanes` | Number of hurricanes in the season (`int`). | `print(season.hurricanes)`
 `major_hurricanes` | Number of major hurricanes in the season (`int`). | `print(season.major_hurricanes)`
 `ace` | Total Accumulated Cyclone Energy for the season (`float`). | `print(season.ace)`
 `stats()` | Prints statistics and detailed information about the season. | `season.stats()`
 `plot()` | Plots all storm tracks for the season, colored by Saffir-Simpson intensity. Plot aesthetic is inspired by the tropycal package.  <br> Kwargs: <br> labels (`bool`) Adds labels for each storm track. | `season.plot(labels=True)`
-`to_dataframe()` | Exports track data (date, time, lat, lon, wind, pressure) for all storms in the season to a Pandas DataFrame. | `df = season.to_dataframe()`
+`to_dataframe()` | Exports track data (atcfid, name, year, time, status, lat, lon, wind, pressure, landfall, ace) for all `Storms` in the `Season` to a Pandas DataFrame. | `df = season.to_dataframe()`
 
-## Roadmap
-### Future planned updates:
+---
 
-* **Statistics Improvements**: Implement new statistics functionality for `Storm` and `Season` objects.
-    * Expected: Summer 2026
-* **Improved Plotting Functionality**: Add/improve plotting functions.
-    * Expected: Summer 2026
-* **Wind Radius Implementation**: Add support for and methods utilizing wind radius data included with modern records in the Hurdat2 dataset.
-    * Expected: Summer 2027
+## Changelog & Roadmap
+For the project roadmap and full version history, please see [CHANGELOG.md](CHANGELOG.md).
 
-## Changelog
-See [CHANGELOG.md](CHANGELOG.md) file for the full version history.
-
+---
 
 ## Attribution & Data Sources
 ### **Data**
@@ -131,17 +131,23 @@ See [CHANGELOG.md](CHANGELOG.md) file for the full version history.
     * Landsea, C. W. and J. L. Franklin, 2013: Atlantic Hurricane Database Uncertainty and Presentation of a New Database Format. Mon. Wea. Rev., 141, 3576-3592.
 
 ### Acknowledgements
-* **Inspiration**: This work was inspired by the great [hurdat2parser](https://pypi.org/project/hurdat2parser/) package. There are many technical capabilities of hurdat2parser that we do not seek to replicate. We recommend you choose whichever package best suites your needs.
+* **Inspiration**: This work was inspired by the great [hurdat2parser](https://pypi.org/project/hurdat2parser/) package. There are many technical capabilities of hurdat2parser that we do not seek to replicate. We recommend you choose whichever package best suits your needs.
 
 * **Plotting Style**: The map visualization aesthetic in this package was inspired by the excellent [tropycal](https://tropycal.github.io/tropycal/index.html) package. While `hurdat2py` is a standalone implementation, we aimed to match their clear, publication-ready visual style. 
 
+---
+
 ## License
-MIT License. See LICENSE file for details.
+MIT License. See [LICENSE](LICENSE) file for details.
+
+---
 
 ## Disclaimer
-`hurdat2py` is maintained for personal research and is not an official NOAA product. 
+`hurdat2py` is maintained for personal research and is not an official NOAA product.
 
 Python® and the Python logo are registered trademarks of the Python Software Foundation. `hurdat2py` is an independent open-source project and is not affiliated with or endorsed by the Python Software Foundation.
+
+---
 
 ## Copyright
 **hurdat2py** <br>

@@ -3,7 +3,9 @@ import re
 import datetime
 import urllib.request
 import collections
-from .objects import TropicalCyclone, Hurdat2Entry, Season
+import warnings
+import pandas as pd
+from .objects import Storm, Hurdat2Entry, Season
 from .errors import StormNotFoundError, DataDownloadError, DataParseError
 
 class Hurdat2:
@@ -157,7 +159,7 @@ class Hurdat2:
                 parts = line.split(',')
                 storm_atcfid = parts[0].strip().lower()
                 storm_name = parts[1].strip()
-                current_storm = TropicalCyclone(storm_atcfid, storm_name, [])
+                current_storm = Storm(storm_atcfid, storm_name, [])
                 self._storms[storm_atcfid] = current_storm
             elif current_storm:
                 parts = re.split(r',\s*', line.strip())
@@ -174,8 +176,15 @@ class Hurdat2:
             
     def rank_seasons_by_ace(self, descending=True):
         """
-        Calculates and returns a ranked list of all seasons by their ACE.
+        DEPRECATED: This method is deprecated and will be removed in a future release.
+        Please use seasonal grouping via to_dataframe() for custom rankings.
         """
+        warnings.warn(
+            "rank_seasons_by_ace is deprecated and will be removed in version 0.5.0. "
+            "Consider using pandas grouping on the output of to_dataframe() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         season_ace_data = []
         
         all_years = sorted(list(set(storm.year for storm in self._storms.values())))
@@ -183,7 +192,7 @@ class Hurdat2:
         for year in all_years:
             try:
                 season = self[year]
-                ace_value = season.ace
+                ace_value = round(season.ace, 2)
                 season_ace_data.append({'year': year, 'ace': ace_value})
             except StormNotFoundError:
                 continue
@@ -196,12 +205,11 @@ class Hurdat2:
         """
         Returns a single pandas DataFrame containing all storm data in the database.
         """
-        import pandas as pd
-        all_data = []
-        for storm in self._storms.values():
-            all_data.append(storm.to_dataframe())
-        
-        return pd.concat(all_data, ignore_index=True)
+        all_data = [storm.to_dataframe() for storm in self._storms.values()]
+        valid_data = [df for df in all_data if not df.empty and not df.isna().all().all()]
+        if not valid_data:
+            return pd.DataFrame()
+        return pd.concat(valid_data, ignore_index=True)
 
     def __iter__(self):
         return iter(self._storms.values())
