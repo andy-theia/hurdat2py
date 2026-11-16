@@ -5,11 +5,11 @@
 ## 🗺️ Roadmap
 
 * **Improved Plotting Functionality**: Add/improve plotting functions.
-    * Expected: Summer 2026
+    * Expected: Fall 2026
 * **Wind Radius Implementation**: Add support for and methods utilizing wind radius data included with modern records in the Hurdat2 dataset.
     * Expected: Fall 2026
 * **Statistics Improvements**: Implement new statistics functionality for `Storm` and `Season` objects.
-    * Expected: Fall 2026
+    * Expected: Spring 2027
 
 ## 📜 Changelog
 
